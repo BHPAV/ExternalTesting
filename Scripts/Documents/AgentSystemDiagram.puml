@@ -1,0 +1,40 @@
+﻿@startuml
+package "Actor System" {
+    class Actor
+    class AgentCore
+    class AgentSubSystem
+    class AgentTrainingManager
+    class AgentRewardManager
+    class AgentSystemManager
+}
+
+package "Task Management" {
+    class Task
+    class TaskPriority
+    class AgentTaskManager
+    class Objective
+    class AgentObjectiveManager
+}
+
+package "Agent Systems" {
+    class AgentOpinionSystem
+    class AgentPersonalitySystem
+    class AgentStatsSystem
+    class AgentStatusSystem
+    class KnowledgeGraph
+    class Node
+    class Edge
+}
+
+package "Sensors and Controllers" {
+    class TotalTransformSensor
+    class TotalTransformSensorComponent
+    class MountController
+}
+
+Actor "1" -- "1" AgentCore : contains
+AgentCore "1" -- "1" AgentSubSystem : uses
+AgentSubSystem <|-- AgentTrainingManager : Inheritance
+AgentSubSystem <|-- AgentRewardManager : Inheritance
+AgentCore "1" -- "1" AgentSystemManager : uses
+@enduml

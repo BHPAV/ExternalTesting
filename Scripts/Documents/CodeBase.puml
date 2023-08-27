@@ -1,0 +1,553 @@
+﻿@startuml CodebaseDiagram
+class Actor {
+    -InputScheme inputScheme
+    -Dictionary<Direction, float> CurrentDirectionInputs
+    -Dictionary<Button, float> CurrentButtonInputs
+    -AgentCore agent
+    -EventListener eventListener
+    -RewardManager RewardManager
+    +InputScheme GetInputScheme()
+    +void Start()
+    +void Mount()
+}
+
+class AgentCore {
+    -Dictionary<object, float> _processedInput
+    -InputScheme inputScheme
+    -Actor actor
+    +void OnActionReceived(ActionBuffers actions)
+    +void Heuristic(in ActionBuffers actionsOut)
+    +void OnEpisodeBegin()
+    +void Initialize()
+}
+
+class AgentSubSystem {
+    -AgentCore Agent
+    +void Initialize(AgentCore agent)
+}
+
+class AgentTrainingManager {
+    -TrainingScenario trainingScenario
+    -AgentTaskManager taskManager
+    -AgentObjectiveManager objectiveManager
+    +void Initialize(AgentCore agent)
+    +void AssignTasksAndObjectives()
+}
+
+
+
+class AgentRewardManager {
+    -Dictionary<Reward, float> _rewardWeights
+    +void SetRewardWeight(Reward reward, float weight)
+    +void ApplyReward(Reward reward)
+}
+
+class AgentSystemManager {
+    -AgentMemorySystem MemoryManager
+    -AgentFocusSystem FocusManager
+    -AgentPersonalitySystem PersonalityManager
+    -List<IAgentSystem> _agentSystems
+    +void Start()
+}
+
+class Task {
+    -TaskPriority priority
+    -TaskStatus Status
+    -int weight
+    -float progress
+    -string name
+    -Reward Reward
+    +void StartTask()
+    +void CompleteTask()
+    +float CalculateProgress()
+    +void Update()
+    +bool Check()
+}
+
+class BrainBox {
+    -Actor actor
+    -bool attach
+    -float range
+    -float speed
+    -float attachingDuration
+    -BrainBoxState state
+    +void Update()
+    +void FindMount()
+    +IEnumerator AttachingCoroutine(Mount closestMount)
+}
+
+class Hull {
+    -List<IHullComponent> _components
+    +void AddComponent(IHullComponent component)
+    +void RemoveComponent(IHullComponent component)
+    +void Update()
+}
+
+class HullController {
+    -List<BoxMount> boxMounts
+    +void InitializeHull()
+    +void UpdateHull()
+    +void SetBoxMounts()
+}
+
+class Mount {
+    +void MountActor(Actor mountActor)
+    +void UnmountActor()
+}
+
+class MountComponent {
+    -Transform mountPoint
+    -Actor actorMounted
+    -float rotationSpeed
+    -float acceleration
+    +void Initialize()
+    +void UpdateComponent()
+    +void MountActor(Actor actor)
+    +void DismountActor(Actor actor)
+    +void RegisterInputScheme(InputScheme inputScheme)
+    +void DeregisterInputScheme(InputScheme inputScheme)
+    +void Accelerate(float value)
+    +void Reverse(float value)
+    +void Turn(float value)
+}
+
+
+class Resource {
+    -SubType subType
+    -ResourceType resourceType
+}
+
+class Energy {
+    -int amount
+}
+
+class Matter {
+}
+
+class DeliveryManager {
+    +void Deliver(Actor actor, Item item, DeliveryPoint deliveryPoint)
+    +void Deposit(Actor actor, Item item, Deposit deposit)
+}
+
+class DeliveryPoint {
+    +void OnTriggerEnter(Collider other)
+}
+
+class Deposit {
+    -int resourceAmount
+    -GameObject depositZoneObject
+    -Marker.MarkerType markerType
+    -Resource.SubType acceptedResource
+    +void Start()
+    +void OnDeposit(Actor actor, Item item, Deposit deposit)
+}
+
+class Marker {
+    -MarkerType markerType
+}
+
+class AgentFocusSystem {
+    -CurrentFocus _currentFocus
+    -FocusHistory _focusHistory
+    +void Initialize()
+    +void Update()
+}
+
+class AgentMemorySystem {
+    -Observations _observations
+    -Memories _memories
+    +void Initialize()
+    +void Update()
+}
+
+Resource "1" -- "1" Actor : uses
+Energy "1" -- "1" Actor : uses
+Matter "1" -- "1" Actor : uses
+DeliveryManager "1" -- "1" Actor : uses
+DeliveryPoint "1" -- "1" Actor : uses
+Deposit "1" -- "1" Actor : uses
+Marker "1" -- "1" Actor : uses
+AgentFocusSystem "1" -- "1" Actor : uses
+AgentMemorySystem "1" -- "1" Actor : uses
+
+
+
+
+class MountController {
+    -Actor Actor
+    -HullController Hull
+    -BoxMount mount
+    +void Start()
+    +void OnDestroy()
+    +void OnActorInput()
+    +void ProcessInputs(Dictionary<Direction, float> directionInputs, Dictionary<Button, float> buttonInputs)
+}
+
+class TotalTransformSensor {
+    -GameObject _targetObject
+    -string _name
+    +int[] GetObservationShape()
+    +string GetName()
+    +byte[] GetCompressedObservation()
+    +void Update()
+    +void Reset()
+    +int Write(ObservationWriter writer)
+    +ObservationSpec GetObservationSpec()
+    +CompressionSpec GetCompressionSpec()
+}
+
+class TotalTransformSensorComponent {
+    -TotalTransformSensor _sensor
+    -StackingSensor _stackingSensor
+    -string sensorName
+    -int numStacks
+    -GameObject targetObject
+    -Vector3 targetPos
+    +void FixedUpdate()
+    +void SetSensorName(string sensorName)
+    +void SetSensorTarget(GameObject target)
+    +ISensor[] CreateSensors()
+}
+
+BrainBox "1" -- "1" Actor : uses
+Hull "1" -- "1" IHullComponent : contains
+HullController "1" -- "1" BoxMount : manages
+Mount "1" -- "1" Actor : uses
+MountComponent "1" -- "1" Actor : uses
+MountController "1" -- "1" Actor : uses
+MountController "1" -- "1" HullController : uses
+MountController "1" -- "1" BoxMount : uses
+TotalTransformSensor "1" -- "1" GameObject : observes
+TotalTransformSensorComponent "1" -- "1" TotalTransformSensor : uses
+TotalTransformSensorComponent "1" -- "1" StackingSensor : uses
+TotalTransformSensorComponent "1" -- "1" GameObject : observes
+
+
+
+class AgentOpinionSystem {
+    -Opinions _opinions
+    -Relationships _relationships
+    +void Initialize()
+    +void Update()
+}
+
+class AgentPersonalitySystem {
+    +void Initialize()
+    +void Update()
+}
+
+class AgentStatsSystem {
+    -float _health
+    -float _energy
+    -float _experience
+    +void Initialize()
+    +void Update()
+    +void IncreaseHealth(float amount)
+    +void DecreaseHealth(float amount)
+    +void ModifyEnergy(float amount)
+    +void AddExperience(float amount)
+}
+
+class AgentStatusSystem {
+    -Dictionary<StatusType, float> _statuses
+    +void Initialize(AgentStatsSystem statsSystem)
+    +void Update()
+    +void SetStatus(StatusType status, float severity)
+    +StatusType GetMostProminentStatus()
+    +List<StatusType> GetCurrentStatusEffects()
+}
+
+class KnowledgeGraph {
+    -List<Node> Nodes
+    -List<Edge> Edges
+    +void AddNode(Node node)
+    +void AddEdge(Edge edge)
+}
+
+class Edge {
+    -Node Source
+    -Node Target
+    -string Relationship
+}
+
+class Node {
+    -string Name
+}
+
+Actor "1" -- "1" AgentOpinionSystem : uses
+Actor "1" -- "1" AgentPersonalitySystem : uses
+Actor "1" -- "1" AgentStatsSystem : uses
+Actor "1" -- "1" AgentStatusSystem : uses
+Actor "1" -- "1" KnowledgeGraph : uses
+Actor "1" -- "1" TriggerBasedTask : uses
+AgentOpinionSystem "1" -- "1" Opinions : manages
+AgentOpinionSystem "1" -- "1" Relationships : manages
+AgentPersonalitySystem "1" -- "1" IAgentSystem : Inheritance
+AgentStatsSystem "1" -- "1" IAgentSystem : Inheritance
+AgentStatusSystem "1" -- "1" IAgentSystem : Inheritance
+KnowledgeGraph "1" -- "1" Node : contains
+KnowledgeGraph "1" -- "1" Edge : contains
+TriggerBasedTask "1" -- "1" Task : Inheritance
+
+
+class ObjectToPositionHandler {
+    -GameObject goal
+    -float _distance
+    +void FixedUpdate()
+    +void OnCollisionEnter(Collision other)
+}
+
+class ObjectToGoal {
+    -GameObject _object
+    -GameObject _goal
+    -bool _objectsMet
+    +ObjectToGoal(GameObject obj1, GameObject obj2)
+    +bool Check()
+}
+
+class TimeBasedTask {
+    -DateTime _startTime
+    -TimeSpan _duration
+    +TimeBasedTask(TimeSpan duration)
+    +bool Check()
+}
+
+class VelocityBasedTask {
+    -Rigidbody _rb
+    -float _velocityThreshold
+    +VelocityBasedTask(Rigidbody rb, float velocityThreshold)
+    +bool Check()
+}
+
+class AgentPerception {
+    -KnowledgeGraph KnowledgeGraph
+    +void OnProximityEvent(GameObject other)
+}
+
+class AgentCommunication {
+    -KnowledgeGraph KnowledgeGraph
+    +void SendKnowledge(AgentCore recipient)
+    +void ReceiveKnowledge(string serializedFragment)
+}
+
+class AgentDecisionMaking {
+    -KnowledgeGraph KnowledgeGraph
+    +void DecideAction()
+}
+
+class AgentExploration {
+    -KnowledgeGraph KnowledgeGraph
+    +void Explore()
+}
+
+class AgentLearning {
+    -KnowledgeGraph KnowledgeGraph
+    +void LearnFromExperience(Experience experience)
+}
+
+class Experience {
+}
+
+class AgentSystemManager {
+    -AgentMemorySystem MemoryManager
+    -AgentFocusSystem FocusManager
+    -AgentPersonalitySystem PersonalityManager
+    -List<IAgentSystem> _agentSystems
+    +void Start()
+}
+
+ObjectToPositionHandler "1" -- "1" Actor : uses
+ObjectToGoal "1" -- "1" Actor : uses
+TimeBasedTask "1" -- "1" Actor : uses
+VelocityBasedTask "1" -- "1" Actor : uses
+AgentPerception "1" -- "1" Actor : uses
+AgentCommunication "1" -- "1" Actor : uses
+AgentDecisionMaking "1" -- "1" Actor : uses
+AgentExploration "1" -- "1" Actor : uses
+AgentLearning "1" -- "1" Actor : uses
+AgentSystemManager "1" -- "1" Actor : uses
+
+
+class DriverController {
+    -Rigidbody rb
+    -EngineController engine
+    -WheelController wheels
+    -float moveSpeed
+    -float rotationSpeed
+    +void Start()
+    +void ProcessInputs(Dictionary<Direction, float> directionInputs, Dictionary<Button, float> buttonInputs)
+    +void Accelerate(float input)
+    +void Rotation(float input)
+    +void Brake(float input)
+}
+
+class DriverMount {
+    +void Start()
+}
+
+interface IMount {
+    +void MountActor(Actor actor)
+    +void UnmountActor()
+}
+
+interface IControlMount {
+    +void ControlMount()
+}
+
+interface IDriverMount {
+    +void Drive()
+    +void Stop()
+}
+
+class Item {
+    -Actor owner
+    -Actor placed
+    -Type type
+    +void Halt()
+    +void Reset()
+    +void SetOwner(Actor actor)
+}
+
+class InputScheme {
+    -List<Direction> directions
+    -List<Button> buttons
+    -Dictionary<Direction, Action<float>> DirectionActions
+    -Dictionary<Button, Action<float>> ButtonActions
+    +void InputDiscreteActions(ActionSegment<int> discreteActions)
+    +float[] GetWASDValues()
+    +void ProcessWASDInput()
+}
+
+class Environment {
+    -ResetHandler _resetHandler
+    +void Initialize()
+    +void Reset()
+}
+
+class EnvironmentEventManager {
+    -Dictionary<string, EnvironmentEvent> _environmentEvents
+    +void RegisterEvent(string eventName, EnvironmentEvent eventToRegister)
+    +void TriggerEvent(string eventName, object eventData)
+}
+
+class EnvironmentManager {
+}
+
+class KeyItem {
+}
+
+class SpawnZone {
+    -Transform spawnPoint
+    -bool isActive
+    -int spawnWeight
+}
+
+enum Direction {
+    Up,
+    Down,
+    Left,
+    Right
+}
+
+enum Act {
+    ArrivedAt,
+    StayedAt,
+    Left,
+    BallIntoGoal,
+    TaskComplete,
+    Touch
+}
+
+enum BespokeEvent {
+    None,
+    Touch,
+    Grab,
+    Release,
+    ObjectToPosition
+}
+
+enum Button {
+    Zero,
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Start,
+    Select,
+    Interact,
+}
+
+
+
+class TaskPriority {
+}
+
+class AgentTaskManager {
+    -List<Task> tasks
+    -RewardManager _rewardManager
+    +void Initialize(AgentCore agent)
+    +void HandleTaskCompleted(Task task)
+    +void AddTask(Task task)
+    +void RemoveTask(Task task)
+    +bool IsTaskInList(Task task)
+    +Task GetTask(int index)
+    +List<Task> GetAllTasks()
+}
+
+class Objective {
+    -string name
+    -ObjectiveStatus status
+    -float progress
+    +void Activate()
+    +void Update()
+}
+
+class AgentSubSystem {
+    -AgentCore Agent
+    +void Initialize(AgentCore agent)
+    +void Update()
+}
+
+interface IAgentSystem {
+    +void Initialize(AgentCore agent)
+    +void Update()
+}
+
+class AgentCore {
+    -Dictionary<object, float> _processedInput
+    -InputScheme inputScheme
+    -Actor actor
+    +void OnActionReceived(ActionBuffers actions)
+    +void Heuristic(in ActionBuffers actionsOut)
+    +void OnEpisodeBegin()
+    +void Initialize()
+}
+
+
+
+class AgentObjectiveManager {
+    -List<Objective> objectives
+    +void AddObjective(Objective objective)
+    +void RemoveObjective(Objective objective)
+    +bool IsObjectiveInList(Objective objective)
+    +Objective GetObjective(int index)
+    +List<Objective> GetAllObjectives()
+}
+
+Actor "1" -- "1" Task : uses
+Actor "1" -- "1" AgentTaskManager : uses
+Actor "1" -- "1" Objective : uses
+Actor "1" -- "1" AgentObjectiveManager : uses
+AgentTaskManager "1" -- "1" Task : manages
+AgentObjectiveManager "1" -- "1" Objective : manages
+
+
+
+Actor "1" -- "1" AgentCore : contains
+AgentCore "1" -- "1" AgentSubSystem : uses
+AgentSubSystem <|-- AgentTrainingManager : Inheritance
+AgentSubSystem <|-- AgentRewardManager : Inheritance
+AgentCore "1" -- "1" AgentSystemManager : uses
+@enduml
+EOF

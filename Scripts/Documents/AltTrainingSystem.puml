@@ -1,0 +1,93 @@
+﻿@startuml AlternateTrainer
+
+!define ITask interface ITask
+!define IObjective interface IObjective
+!define IReward interface IReward
+
+class Agent {
+    +TaskManager: TaskManager
+    +RewardManager: RewardManager
+    +TrainingManager: TrainingManager
+    +InputManager: InputManager
+    +EventManager: EventManager
+}
+
+class TaskManager {
+    -tasks: List<ITask>
+    +AddTask(task: ITask)
+    +RemoveTask(task: ITask)
+}
+
+class RewardManager {
+    -rewards: List<IReward>
+    +ApplyReward(reward: IReward)
+}
+
+class TrainingManager {
+    -strategy: TrainingStrategy
+    +InitializeStrategy(strategy: TrainingStrategy)
+}
+
+class InputManager {
+    -inputScheme: InputScheme
+    +GetInputScheme(): InputScheme
+}
+
+class EventManager {
+    +Subscribe(event: BespokeEvent, listener: Action<EventData>)
+    +Unsubscribe(event: BespokeEvent, listener: Action<EventData>)
+    +TriggerEvent(event: BespokeEvent, eventData: EventData)
+}
+
+class TrainingStrategy {
+}
+
+class ReinforcementLearningStrategy {
+}
+
+class SupervisedLearningStrategy {
+}
+
+class Environment {
+}
+
+class RollingBallEnvironment {
+}
+
+class PickupObjectEnvironment {
+}
+
+class InputScheme {
+}
+
+class Reward {
+}
+
+class Task {
+}
+
+class Objective {
+}
+
+class BespokeEvent {
+}
+
+class EventData {
+}
+
+
+Agent "1" -- "1" TaskManager
+Agent "1" -- "1" RewardManager
+Agent "1" -- "1" TrainingManager
+Agent "1" -- "1" InputManager
+Agent "1" -- "1" EventManager
+
+
+TrainingManager "1" -- "1" TrainingStrategy
+TrainingStrategy <|-- ReinforcementLearningStrategy
+TrainingStrategy <|-- SupervisedLearningStrategy
+
+Environment <|-- RollingBallEnvironment
+Environment <|-- PickupObjectEnvironment
+
+@enduml
